@@ -14,7 +14,7 @@
 
 ## 目录结构
 
-```
+```text
 text-adventure-rpg/
 ├── pyproject.toml
 ├── CLAUDE.md                      ← 本文件
@@ -25,11 +25,11 @@ text-adventure-rpg/
 │   ├── scenes.py                   ← 场景加载
 │   ├── items.py                    ← 物品系统
 │   ├── npcs.py                     ← NPC 行为
-│   └── persistence.py              ← 存档读档（第 10 章）
-├── data/
-│   ├── scenes/                     ← 场景定义 JSON
-│   ├── items/                      ← 物品定义 JSON
-│   └── npcs/                       ← NPC 定义 JSON
+│   ├── persistence.py              ← 存档读档（第 10 章）
+│   └── data/                       ← 场景/物品/NPC 定义 JSON（随包分发）
+│       ├── scenes/
+│       ├── items/
+│       └── npcs/
 └── tests/
 ```
 
@@ -59,7 +59,7 @@ pytest -v
 ## 与本书的关系
 
 | 章节 | 本仓库对应 |
-|------|----------|
+| ---- | ---------- |
 | 第 3 章 控制平面 | `engine.py` 的 perceive → plan → act → verify 四步骤 |
 | 第 4 章 上下文治理 | 本文件即是示例 |
 | 第 5 章 权限/Hooks | `.claude/settings.json` |

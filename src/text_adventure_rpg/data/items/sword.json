@@ -1,0 +1,9 @@
+{
+  "id": "sword",
+  "name": "锈迹斑斑的短剑",
+  "description": "剑身布满锈斑，但开刃处仍可见反光。",
+  "type": "weapon",
+  "attack": 8,
+  "durability": 20,
+  "use_message": "你紧握剑柄，掌心被粗糙的皮革磨得发烫。"
+}

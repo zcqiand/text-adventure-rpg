@@ -1,0 +1,12 @@
+{
+  "id": "forest",
+  "name": "幽暗森林入口",
+  "description": "晨雾未散，腐叶味在鼻尖。一条铺着青苔的石径向森林深处延伸，林间隐约传来枝条断裂的声响。",
+  "exits": {
+    "north": "deep_forest",
+    "south": "village_gate"
+  },
+  "items": ["sword"],
+  "npcs": ["goblin"],
+  "on_enter": "你抽出腰间短剑，剑鞘金属与皮带的摩擦声在林中显得格外刺耳。"
+}

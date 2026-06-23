@@ -1,0 +1,51 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "text-adventure-rpg"
+version = "0.1.0"
+description = "《Harness 工程》卷一卷二配套案例：文字冒险 RPG 游戏"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [
+    { name = "南荣相如", email = "1282301776@qq.com" }
+]
+requires-python = ">=3.10"
+keywords = ["claude-code", "harness", "rpg", "text-adventure", "tutorial"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Games/Entertainment :: Role-Playing",
+]
+# 无运行时第三方依赖：游戏只用标准库，便于读者复现
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+]
+
+[project.scripts]
+# 安装后用 `text-rpg` 启动游戏
+text-rpg = "text_adventure_rpg.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/zcqiand/text-adventure-rpg"
+Issues = "https://github.com/zcqiand/text-adventure-rpg/issues"
+Book = "https://github.com/zcqiand/claudecode-harness-book"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/text_adventure_rpg"]
+
+# data/ JSON 文件位于 src/text_adventure_rpg/data/，作为包资源随 wheel 分发，
+# 运行期通过 importlib.resources.files("text_adventure_rpg") / "data" 读取，
+# 避免「数据文件路径在源码树和已安装包里不一致」的常见坑。
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

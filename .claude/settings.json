@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "_comment_about_this_file": "本文件是《Harness 工程》第 5 章「权限、沙箱、Hooks」的实物示例。它在 Claude Code 启动时被读取，决定哪些工具默认允许、哪些禁止、哪些写入需要 Hook 二次确认。",
+  "permissions": {
+    "allow": [
+      "Read(./**)",
+      "Write(src/**)",
+      "Write(tests/**)",
+      "Write(data/**)",
+      "Edit(src/**)",
+      "Edit(tests/**)",
+      "Bash(pytest:*)",
+      "Bash(pip install:*)",
+      "Bash(python -m text_adventure_rpg:*)",
+      "Bash(text-rpg:*)",
+      "Bash(git status)",
+      "Bash(git diff)",
+      "Bash(git log:*)"
+    ],
+    "deny": [
+      "Bash(rm -rf:*)",
+      "Bash(rm -fr:*)",
+      "Bash(git push:*)",
+      "Bash(pip uninstall:*)",
+      "Read(~/.text-adventure-rpg/**)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "_comment": "保护数据契约文件：修改 data/ 下 JSON 必须二次确认——避免 AI 改坏场景/物品定义把现有存档变成不可读。",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"const i=JSON.parse(require('fs').readFileSync(0,'utf8'));const p=(i.tool_input||{}).file_path||'';if(p.includes('/data/')||p.includes('\\\\data\\\\')){console.error('⚠ 拟修改数据契约文件: '+p+'。请确认后再继续。');process.exit(2)}\""
+          }
+        ]
+      }
+    ]
+  }
+}
