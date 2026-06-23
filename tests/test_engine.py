@@ -135,3 +135,108 @@ def test_unknown_command_yields_user_visible_message() -> None:
     result = engine.act("unknown", "fly")
 
     assert any("不认识的指令" in m for m in result.messages)
+
+
+# ----------------------------------------------------------------------
+# 玩家级 undo 功能
+# ----------------------------------------------------------------------
+# 注意：这是游戏内玩家功能（"输错指令想撤销一下"），
+# 不是模拟 Claude Code 的 /rewind。两者是不同层级的撤销。
+
+
+def test_plan_recognizes_undo_command() -> None:
+    """undo 与 u 都能解析为 undo 动作。"""
+    engine = Engine.new_game()
+
+    assert engine.plan("undo") == ("undo", "")
+    assert engine.plan("u") == ("undo", "")
+
+
+def test_undo_with_empty_history_gives_friendly_message() -> None:
+    """新游戏第一步就 undo 应给可读提示，而不是崩溃。"""
+    engine = Engine.new_game()
+
+    result = engine.act("undo", "")
+
+    assert any("没有可撤销的动作" in m for m in result.messages)
+
+
+def test_undo_after_take_sword_returns_to_pre_take_state() -> None:
+    """拿剑后 undo 应让背包空，场景物品列表恢复 sword。"""
+    engine = Engine.new_game()
+    assert "sword" in engine.current_scene.items
+    assert engine.state.inventory == []
+
+    engine.act("take", "sword")
+    assert engine.state.inventory == ["sword"]
+    assert "sword" not in engine.current_scene.items
+
+    engine.act("undo", "")
+
+    assert engine.state.inventory == []
+    assert "sword" in engine.current_scene.items
+
+
+def test_undo_after_attack_restores_player_hp_and_npc_hp() -> None:
+    """攻击哥布林被反击之后 undo，应同时恢复玩家 HP 与 NPC HP。"""
+    engine = Engine.new_game()
+    engine.act("take", "sword")
+
+    # 攻击一次：玩家造成 8 点，反击吃 4 点
+    engine.act("attack", "goblin")
+    assert engine.state.player_hp == 26
+    assert engine.npc_states["goblin"].current_hp == 7
+
+    engine.act("undo", "")
+
+    assert engine.state.player_hp == 30
+    assert engine.npc_states["goblin"].current_hp == 15
+
+
+def test_undo_chain_multiple_steps() -> None:
+    """连续 undo 多步应按 LIFO 顺序回退。"""
+    engine = Engine.new_game()
+
+    # 三步顺序：take sword → attack → undo undo undo
+    engine.act("take", "sword")
+    engine.act("attack", "goblin")
+    engine.act("attack", "goblin")  # goblin 在第二次攻击后死亡
+
+    # 三步前的状态：HP 30、背包空、goblin 满血、剑在场景
+    engine.act("undo", "")  # 撤销第二次 attack
+    engine.act("undo", "")  # 撤销第一次 attack
+    engine.act("undo", "")  # 撤销 take sword
+
+    assert engine.state.player_hp == 30
+    assert engine.state.inventory == []
+    assert engine.npc_states["goblin"].current_hp == 15
+    assert "sword" in engine.current_scene.items
+
+
+def test_undo_does_not_pollute_history_with_noop_or_look() -> None:
+    """look 与 noop 不该污染 undo 历史——这种"读不动状态"的动作不入栈。"""
+    engine = Engine.new_game()
+    engine.act("take", "sword")  # 入栈 1
+    engine.act("look", "")        # 不入栈
+    engine.act("noop", "")        # 不入栈
+
+    # undo 应直接回到 take 之前
+    engine.act("undo", "")
+
+    assert engine.state.inventory == []
+    assert "sword" in engine.current_scene.items
+
+
+def test_undo_history_bounded_to_10_steps() -> None:
+    """超过 10 步的更早历史会被自动丢弃，避免内存无界增长。"""
+    engine = Engine.new_game()
+
+    # 攻击 15 次（每次 attack 入栈一次）
+    for _ in range(15):
+        engine.act("attack", "goblin")
+        if engine.npc_states["goblin"].is_dead:
+            # goblin 死了之后继续 attack 不会改状态，但 _snapshot 仍执行
+            pass
+
+    # 历史栈深度应被限制在 _UNDO_HISTORY_LIMIT
+    assert len(engine._history) <= 10

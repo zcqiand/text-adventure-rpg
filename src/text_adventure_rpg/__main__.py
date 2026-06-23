@@ -29,6 +29,7 @@ WELCOME = """
   go <方向>           前往某个方向（如 go north）
   attack <目标>       攻击 NPC（如 attack goblin）
   take <物品>         拾取物品（如 take sword）
+  undo                撤销上一个动作（最多 10 步）
   save [槽位]         存档（默认槽位 default）
   quit                退出
 

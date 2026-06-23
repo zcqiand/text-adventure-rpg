@@ -12,12 +12,18 @@
 
 from __future__ import annotations
 
+import copy
 from dataclasses import dataclass, field
 
 from .items import Item, load_item
 from .npcs import Npc, NpcState, load_npc
 from .persistence import GameState
 from .scenes import Scene, load_scene
+
+
+# 玩家级 undo 栈深度上限——避免无限增长。这个数字大致够「打错一次方向」
+# 「拿错一个物品」「不小心攻击错目标」三种最常见后悔情境。
+_UNDO_HISTORY_LIMIT = 10
 
 
 @dataclass
@@ -33,6 +39,24 @@ class TurnResult:
 
 
 @dataclass
+class _EngineSnapshot:
+    """一个 turn 开头的可逆状态快照。
+
+    只快照「玩家级可见的可逆状态」——GameState、当前场景 id、NPC 运行期 HP；
+    不快照 Scene 模板对象本身（场景定义文件不可变）也不快照已经做过的日志输出。
+
+    这是给玩家用的 undo，不是给开发者用的 /rewind——所以"开发者层"的状态
+    （Claude Code session、对话历史）完全不在快照范围内，这与第 9 章反模式
+    告诫的"用 Python 模拟 checkpoint"是两件不同的事。
+    """
+
+    state: GameState
+    current_scene_id: str
+    npc_hp_by_id: dict[str, int]
+    scene_items: tuple[str, ...]
+
+
+@dataclass
 class Engine:
     """游戏运行期容器。
 
@@ -40,11 +64,13 @@ class Engine:
     - 玩家状态（state）
     - 当前场景（current_scene）
     - 当前场景的 NPC 运行期副本（npc_states，按 id 索引）
+    - 玩家级 undo 历史栈（_history，玩家可输入 'undo' 回退一步）
     """
 
     state: GameState
     current_scene: Scene
     npc_states: dict[str, NpcState] = field(default_factory=dict)
+    _history: list[_EngineSnapshot] = field(default_factory=list)
 
     @classmethod
     def new_game(cls, scene_id: str = "forest") -> "Engine":
@@ -108,6 +134,8 @@ class Engine:
             return ("noop", "")
         if cleaned in {"quit", "exit", ":q"}:
             return ("quit", "")
+        if cleaned in {"undo", "u"}:
+            return ("undo", "")
         if cleaned in {"save"}:
             return ("save", "default")
         if cleaned.startswith("save "):
@@ -134,6 +162,10 @@ class Engine:
 
         每个动作都返回 TurnResult，避免静默修改状态——便于第 9 章
         「错误恢复」演示「执行失败时不污染状态」。
+
+        改状态的动作（go / attack / take）在真正执行前先压入 undo 快照；
+        不改状态的动作（look / quit / noop / save / undo 本身）不压栈，
+        避免污染 undo 历史。
         """
         result = TurnResult()
 
@@ -150,13 +182,19 @@ class Engine:
             result.messages.append(self.perceive())
             return result
 
+        if action == "undo":
+            return self._act_undo(result)
+
         if action == "go":
+            self._snapshot()
             return self._act_go(argument, result)
 
         if action == "attack":
+            self._snapshot()
             return self._act_attack(argument, result)
 
         if action == "take":
+            self._snapshot()
             return self._act_take(argument, result)
 
         if action == "save":
@@ -275,3 +313,72 @@ class Engine:
         )
         result.messages.append(f"你拾起了 {item.name}。{item.use_message}")
         return result
+
+    # ------------------------------------------------------------------
+    # 玩家级 undo（不是开发者级 /rewind）
+    # ------------------------------------------------------------------
+
+    def _snapshot(self) -> None:
+        """把当前可逆状态压入 undo 栈。
+
+        在每个会改状态的动作（go / attack / take）真正执行之前调用一次。
+        如果动作本身没有改任何状态（比如 attack 一个已死的 NPC），栈里
+        会留下一个与当前状态等价的快照——这不影响功能，玩家 undo 一次
+        就回到等价状态，再 undo 一次回到真正想退回的状态。这种「冗余但
+        不出错」的取舍比「检测状态是否真的变了」更简单也更可靠。
+
+        使用 copy.deepcopy 是因为 GameState.inventory 是 list、
+        NpcState.current_hp 是 int 但 npc_states 字典本身可变。deepcopy
+        统一处理，避免某个字段意外漏拷贝。
+        """
+        snapshot = _EngineSnapshot(
+            state=copy.deepcopy(self.state),
+            current_scene_id=self.current_scene.id,
+            npc_hp_by_id={
+                npc_id: npc_state.current_hp
+                for npc_id, npc_state in self.npc_states.items()
+            },
+            scene_items=self.current_scene.items,
+        )
+        self._history.append(snapshot)
+        # 限制栈深度——这是玩家级 undo，不需要无限历史
+        if len(self._history) > _UNDO_HISTORY_LIMIT:
+            self._history.pop(0)
+
+    def _act_undo(self, result: TurnResult) -> TurnResult:
+        """弹出最近一个快照并恢复。"""
+        if not self._history:
+            result.messages.append("没有可撤销的动作。")
+            return result
+
+        snapshot = self._history.pop()
+        self._restore_snapshot(snapshot)
+        result.messages.append("已撤销上一个动作。")
+        result.messages.append(self.perceive())
+        return result
+
+    def _restore_snapshot(self, snapshot: _EngineSnapshot) -> None:
+        """按快照恢复玩家状态、场景、NPC 血量。"""
+        self.state = snapshot.state
+
+        # 场景如果变了，要重新 load_scene 与 _spawn_scene_npcs
+        if self.current_scene.id != snapshot.current_scene_id:
+            self.current_scene = load_scene(snapshot.current_scene_id)
+            self._spawn_scene_npcs()
+
+        # 场景内物品列表回退（玩家可能拿走了 sword 又 undo）
+        if self.current_scene.items != snapshot.scene_items:
+            self.current_scene = Scene(
+                id=self.current_scene.id,
+                name=self.current_scene.name,
+                description=self.current_scene.description,
+                exits=self.current_scene.exits,
+                items=snapshot.scene_items,
+                npcs=self.current_scene.npcs,
+                on_enter=self.current_scene.on_enter,
+            )
+
+        # NPC 血量按 snapshot 恢复（玩家可能砍了哥布林 8 点又 undo）
+        for npc_id, npc_state in self.npc_states.items():
+            if npc_id in snapshot.npc_hp_by_id:
+                npc_state.current_hp = snapshot.npc_hp_by_id[npc_id]
