@@ -12,8 +12,11 @@ from pathlib import Path
 import pytest
 
 from text_adventure_rpg.persistence import (
+    AUTOSAVE_ROTATION_SIZE,
+    AUTOSAVE_SLOT_PREFIX,
     GameState,
     SCHEMA_VERSION,
+    auto_checkpoint,
     list_saves,
     load_game,
     save_game,
@@ -116,3 +119,67 @@ def test_list_saves_returns_empty_when_dir_missing(tmp_path: Path) -> None:
     nonexistent = tmp_path / "never-created"
 
     assert list_saves(save_dir=nonexistent) == []
+
+
+# ----------------------------------------------------------------------
+# auto-checkpoint：环形覆盖最近 N 份自动存档
+# ----------------------------------------------------------------------
+
+
+def test_auto_checkpoint_writes_to_autosave_prefix_slot(tmp_path: Path) -> None:
+    """auto_checkpoint 应写入以 autosave- 开头的槽位。"""
+    state = _make_state()
+
+    path = auto_checkpoint(state, turn_index=0, save_dir=tmp_path)
+
+    assert path is not None
+    assert path.name.startswith(AUTOSAVE_SLOT_PREFIX)
+    assert path.is_file()
+
+
+def test_auto_checkpoint_rotates_through_n_slots(tmp_path: Path) -> None:
+    """连续调 auto_checkpoint，应按 turn_index 模 rotation 在固定 N 个槽位间轮换。
+
+    rotation=3 时，turn 0/1/2 各写一个新槽，turn 3 应覆盖 turn 0 的槽。
+    总槽位数永远 ≤ rotation。
+    """
+    state = _make_state()
+
+    for turn in range(10):
+        auto_checkpoint(state, turn_index=turn, save_dir=tmp_path)
+
+    autosave_slots = [s for s in list_saves(save_dir=tmp_path) if s.startswith(AUTOSAVE_SLOT_PREFIX)]
+
+    assert len(autosave_slots) == AUTOSAVE_ROTATION_SIZE
+    assert set(autosave_slots) == {f"{AUTOSAVE_SLOT_PREFIX}{i}" for i in range(AUTOSAVE_ROTATION_SIZE)}
+
+
+def test_auto_checkpoint_overwrites_old_content(tmp_path: Path) -> None:
+    """同一槽位被 auto_checkpoint 第二次写入时，新状态应覆盖旧状态。"""
+    state_a = GameState(current_scene_id="forest", player_hp=20, inventory=[])
+    state_b = GameState(current_scene_id="forest", player_hp=8, inventory=["sword"])
+
+    # turn 0 和 turn 3 都会落在 autosave-0（3 槽 rotation）
+    auto_checkpoint(state_a, turn_index=0, save_dir=tmp_path)
+    auto_checkpoint(state_b, turn_index=AUTOSAVE_ROTATION_SIZE, save_dir=tmp_path)
+
+    restored = load_game(slot=f"{AUTOSAVE_SLOT_PREFIX}0", save_dir=tmp_path)
+
+    assert restored.player_hp == 8
+    assert restored.inventory == ["sword"]
+
+
+def test_user_save_and_autosave_coexist(tmp_path: Path) -> None:
+    """玩家手动 save 的槽位与 auto-checkpoint 槽位互不污染。"""
+    state = _make_state()
+
+    save_game(state, slot="my-progress", save_dir=tmp_path)
+    auto_checkpoint(state, turn_index=0, save_dir=tmp_path)
+    auto_checkpoint(state, turn_index=1, save_dir=tmp_path)
+
+    all_slots = list_saves(save_dir=tmp_path)
+    user_slots = [s for s in all_slots if not s.startswith(AUTOSAVE_SLOT_PREFIX)]
+    auto_slots = [s for s in all_slots if s.startswith(AUTOSAVE_SLOT_PREFIX)]
+
+    assert user_slots == ["my-progress"]
+    assert set(auto_slots) == {f"{AUTOSAVE_SLOT_PREFIX}0", f"{AUTOSAVE_SLOT_PREFIX}1"}

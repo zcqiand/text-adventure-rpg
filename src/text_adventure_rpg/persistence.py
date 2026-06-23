@@ -120,3 +120,33 @@ def list_saves(save_dir: Path | None = None) -> list[str]:
     if not target_dir.is_dir():
         return []
     return sorted(p.stem for p in target_dir.glob("*.json"))
+
+
+# auto-checkpoint：把"每 N 个回合滚动存到 autosave-K 槽"这种环形缓冲行为
+# 沉到 persistence 层。autosave 槽位名固定走 "autosave-N" 模式，方便
+# list_saves 列出来时与玩家手动 save 的槽位区分。
+AUTOSAVE_SLOT_PREFIX = "autosave-"
+AUTOSAVE_ROTATION_SIZE = 3  # 同时保留最近 3 份 autosave
+
+
+def auto_checkpoint(
+    state: GameState,
+    turn_index: int,
+    save_dir: Path | None = None,
+) -> Path | None:
+    """按 turn_index 写一份 autosave，最多保留 AUTOSAVE_ROTATION_SIZE 份。
+
+    槽位名按 turn_index 模 rotation 取，例如 rotation=3 时：
+        turn 0 → autosave-0
+        turn 1 → autosave-1
+        turn 2 → autosave-2
+        turn 3 → autosave-0  (覆盖第一个，环形)
+
+    这样既保留了"最近 3 次自动存档"，又不会让目录无限增长——这是
+    游戏 autosave 的标准做法（Vim swp、IDE 历史也是同一个思路）。
+
+    返回值：写入的存档文件路径。
+    """
+    slot_index = turn_index % AUTOSAVE_ROTATION_SIZE
+    slot = f"{AUTOSAVE_SLOT_PREFIX}{slot_index}"
+    return save_game(state, slot=slot, save_dir=save_dir)
