@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "_comment_about_this_file": "本文件是《Harness 工程》第 5 章「权限、沙箱、Hooks」的实物示例。它在 Claude Code 启动时被读取，决定哪些工具默认允许、哪些禁止、哪些写入需要 Hook 二次确认。",
+  "_comment_about_this_file": "本文件是《Harness 工程：围绕 Claude Code 构建可靠系统》第 5 章「权限、沙箱、Hooks」的实物示例。它在 Claude Code 启动时被读取，决定哪些工具默认允许、哪些禁止、哪些写入需要 Hook 二次确认。",
   "permissions": {
     "allow": [
       "Read(./**)",

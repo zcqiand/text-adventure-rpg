@@ -96,7 +96,7 @@ def _parse_args(argv: list[str]) -> argparse.Namespace:
     """
     parser = argparse.ArgumentParser(
         prog="text-rpg",
-        description="文字冒险 RPG 游戏（《Harness 工程》卷一卷二配套案例）",
+        description="文字冒险 RPG 游戏（《Harness 工程：围绕 Claude Code 构建可靠系统》卷一卷二配套案例）",
     )
     parser.add_argument(
         "--save-slot",
