@@ -16,6 +16,7 @@ from .persistence import (
     load_game,
     save_game,
 )
+from .validators import format_report, run_consistency_check
 
 
 WELCOME = """
@@ -71,6 +72,17 @@ def main(argv: list[str] | None = None) -> int:
         argv = sys.argv[1:]
 
     print(WELCOME)
+
+    # 启动自检：跑一次多文件一致性校验（第 8 章实物）。
+    # 错误阻止启动，警告只打印——避免缺一个边境场景就导致整个游戏无法启动。
+    consistency = run_consistency_check()
+    if not consistency.passed:
+        print(format_report(consistency))
+        print("\n启动失败：数据契约不一致。请修复 errors 后再运行。")
+        return 2
+    if consistency.warnings:
+        # 警告级别保持启动可继续，但要让玩家看到（与 Engine 的"降级提示"配合）
+        print(format_report(consistency))
 
     engine = _try_resume() or Engine.new_game()
 
