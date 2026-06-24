@@ -18,6 +18,17 @@
 | 第 9 章 错误恢复 | `src/text_adventure_rpg/engine.py` 的回滚/重试/降级 |
 | 第 10 章 持久化 | `src/text_adventure_rpg/persistence.py` |
 
+## xr-know-002《Claude Code 从入门到项目实践》案例扩充（v2.0-002）
+
+本仓库同时作为《Claude Code 从入门到项目实践》(xr-know-002) 卷三（文字冒险 RPG 游戏）的实物载体。卷三第 30-31 章在原 005 模块基础上额外用到以下模块：
+
+| 章节 | 对应代码 |
+|------|---------|
+| 第 30 章 战斗系统与数值平衡 | `src/text_adventure_rpg/combat.py` + `character.py` + `formulas.py` |
+| 第 31 章 动态叙事与 LLM 集成 | `src/text_adventure_rpg/narrative.py`（`client=None` 走本地确定性模板，CI 不依赖 LLM Key） |
+
+其余卷三章（立项架构/场景图/NPC物品/存档测试/调试发布）仍对应原 005 模块（engine/scenes/items/npcs/persistence/validators）。
+
 ## 快速开始
 
 ```bash

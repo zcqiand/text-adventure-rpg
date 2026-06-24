@@ -49,5 +49,5 @@ class TestCalcMpCost:
         assert calc_mp_cost(-5, 1.0) == 0
 
     def test_rounding_half_up(self):
-        # round(5 * 1.1) = round(5.5) = 6（Python 银行家舍入对 .5 偶数得 6）
+        # round(5 * 1.1) = round(5.5) = 6（Python 银行家舍入：结果取最近偶数，6 为偶数）
         assert calc_mp_cost(5, 1.1) == 6
