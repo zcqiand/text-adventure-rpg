@@ -13,6 +13,7 @@
       "Bash(pip install:*)",
       "Bash(python -m text_adventure_rpg:*)",
       "Bash(text-rpg:*)",
+      "Bash(text-full-rpg:*)",
       "Bash(git status)",
       "Bash(git diff)",
       "Bash(git log:*)"

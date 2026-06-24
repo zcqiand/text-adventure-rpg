@@ -474,7 +474,7 @@ def _battle_loop(
 
 
 def main(argv: list[str] | None = None) -> int:
-    """战斗版游戏入口。被 console_scripts ``text-rpg`` 调用。"""
+    """战斗版游戏入口。被 console_scripts ``text-full-rpg`` 调用。"""
     _print(WELCOME)
 
     narrator = make_narrator()

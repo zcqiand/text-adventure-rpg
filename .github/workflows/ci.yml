@@ -34,8 +34,11 @@ jobs:
       - name: Run pytest
         run: pytest -v
 
-      - name: Smoke test entrypoint
+      - name: Smoke test entrypoints
         # 验证 console_scripts 已正确注册（第 15 章「CI/CD 烟雾测试」实物）。
+        # 两条入口分别归属不同章节案例：text-rpg（005 __main__）与 text-full-rpg（002 game）。
         # 用 EOF 让游戏立刻退出，不进入交互。
         shell: bash
-        run: echo "quit" | text-rpg
+        run: |
+          echo "quit" | text-rpg
+          echo "quit" | text-full-rpg

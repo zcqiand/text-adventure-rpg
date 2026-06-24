@@ -36,7 +36,11 @@
 pip install -e .
 
 # 运行
-text-rpg
+text-rpg          # 005「Agent Loop」版（__main__.py，perceive→plan→act→verify 主循环）
+text-full-rpg     # 002 卷三战斗集成版（game.py，character + combat + formulas + narrative）
+
+# 也可用模块方式运行 005 版
+python -m text_adventure_rpg
 
 # 跑测试
 pytest
