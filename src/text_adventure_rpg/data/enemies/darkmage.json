@@ -1,0 +1,14 @@
+{
+  "id": "darkmage",
+  "name": "黑袍法师",
+  "description": "兜帽遮住大半张脸，枯瘦的手指间跳跃着幽紫色的法力火花。",
+  "hp": 45,
+  "max_hp": 45,
+  "mp": 80,
+  "max_mp": 80,
+  "atk": 16,
+  "def_": 4,
+  "level": 3,
+  "defeat_message": "黑袍法师的兜帽滑落，化作一缕青烟消散在腐叶之间。",
+  "victory_message": "一道紫光击中你胸口，你的意识坠入深渊——"
+}

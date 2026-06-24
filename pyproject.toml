@@ -31,8 +31,9 @@ dev = [
 ]
 
 [project.scripts]
-# 安装后用 `text-rpg` 启动游戏
-text-rpg = "text_adventure_rpg.__main__:main"
+# 安装后用 `text-rpg` 启动战斗版游戏（character + combat + formulas + narrative 集成）。
+# 005 的 Agent Loop 简化战斗版仍可通过 `python -m text_adventure_rpg` 运行（__main__.py 保留原样）。
+text-rpg = "text_adventure_rpg.game:main"
 
 [project.urls]
 Homepage = "https://github.com/zcqiand/text-adventure-rpg"

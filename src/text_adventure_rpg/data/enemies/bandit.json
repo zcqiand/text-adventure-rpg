@@ -1,0 +1,14 @@
+{
+  "id": "bandit",
+  "name": "拦路山贼",
+  "description": "裹着破旧皮甲，手握一柄豁口的环首刀，眼神警惕而贪婪。",
+  "hp": 55,
+  "max_hp": 55,
+  "mp": 10,
+  "max_mp": 10,
+  "atk": 14,
+  "def_": 8,
+  "level": 2,
+  "defeat_message": "山贼的环首刀脱手，他捂着伤口踉跄逃进林子深处。",
+  "victory_message": "山贼一刀劈在你肩头，你眼前发黑——"
+}
