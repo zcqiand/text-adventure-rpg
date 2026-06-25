@@ -100,8 +100,11 @@ def test_go_to_unimplemented_scene_degrades_gracefully() -> None:
     engine = Engine.new_game()
     # 清掉 goblin 才能离开
     engine.npc_states["goblin"].current_hp = 0
-    # forest 的两个出口都指向尚未实装的场景，正好用来测降级
-    result = engine.act("go", "north")
+    # village_gate / deep_forest 补齐后 forest 出口全部实装，
+    # 这里临时加一个指向虚构场景的出口，让 _act_go 真正走到 load_scene 抛
+    # FileNotFoundError 的降级分支——不再依赖场景图恰好留有未实装出口。
+    engine.current_scene.exits["east"] = "nonexistent_scene"
+    result = engine.act("go", "east")
 
     assert engine.state.current_scene_id == "forest"  # 没成功切换
     assert any("尚未实装" in m for m in result.messages)
