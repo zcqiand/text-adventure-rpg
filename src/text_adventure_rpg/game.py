@@ -58,8 +58,12 @@ _CLASS_MENU: list[tuple[str, ClassType, str]] = [
 #: 每个场景默认遭遇的敌人 id。遇敌机制：进入特定场景时该敌人即出现，
 #: 玩家可用 ``fight`` 主动开战；敌人在场时无法 ``go``（与 engine 的「未清场禁移动」
 #: 行为一致，但这里走战斗版数据结构）。
+#:
+#: forest 入口派弱敌 wolf（Lv1）；deep_forest 深处升级为 bandit（Lv2，atk/def 更高），
+#: 形成「越往北越危险」的难度梯度。village_gate（南）是安全区，不登记任何敌人。
 _SCENE_ENEMIES: dict[str, str] = {
     "forest": "wolf",
+    "deep_forest": "bandit",
 }
 
 
