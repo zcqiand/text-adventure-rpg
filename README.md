@@ -61,14 +61,17 @@
 | 第 9 章 错误恢复        | `src/text_adventure_rpg/engine.py` 的回滚/重试/降级             |
 | 第 10 章 持久化         | `src/text_adventure_rpg/persistence.py`                         |
 
-### 书二《Claude Code 从入门到项目实践》（xr-know-002，卷三·战斗篇）
+### 书二《Claude Code 从入门到项目实践》（卷三·文字冒险 RPG 游戏）
 
 | 章节                         | 对应代码                                                                                       |
 | ---------------------------- | ---------------------------------------------------------------------------------------------- |
+| 第 27 章 项目立项与架构设计  | `src/text_adventure_rpg/__main__.py`（项目骨架、入口分配）                                   |
+| 第 28 章 场景图与状态机引擎  | `src/text_adventure_rpg/scenes.py`（房间/地图/状态机/导航）                                  |
+| 第 29 章 NPC、物品与对话系统 | `src/text_adventure_rpg/npcs.py` + `items.py`（NPC 行为建模/多分支对话/物品背包）          |
 | 第 30 章 战斗系统与数值平衡  | `src/text_adventure_rpg/combat.py` + `character.py` + `formulas.py`                      |
 | 第 31 章 动态叙事与 LLM 集成 | `src/text_adventure_rpg/narrative.py`（`client=None` 走本地确定性模板，CI 不依赖 LLM Key） |
-
-其余卷三章节（立项架构 / 场景图 / NPC 物品 / 存档测试 / 调试发布）仍对应书一的核心模块（engine / scenes / items / npcs / persistence / validators）。
+| 第 32 章 存档、UI 与测试     | `src/text_adventure_rpg/persistence.py` + `validators.py`（原子存档/双形态 UI/自动化测试） |
+| 第 33 章 调试、迭代与发布    | 整体调试流程与发布脚本                                                                         |
 
 ## 快速开始
 
@@ -108,9 +111,10 @@ pytest
 
   - 对应核心探索版：`__main__` / `engine` / `scenes` / `items` / `npcs` / `persistence` / `validators`
   - 代码片段索引：[claudecode-harness-book](https://github.com/zcqiand/claudecode-harness-book)
-- **《Claude Code 从入门到项目实践》**（卷三·战斗篇）— 南荣相如
+- **《Claude Code 从入门到项目实践》**（卷三·文字冒险 RPG 游戏）— 南荣相如
 
   - 对应战斗集成版：`character` / `combat` / `formulas` / `narrative` / `game`
   - 代码片段索引：[claude-code-book](https://github.com/zcqiand/claude-code-book)
+  - 电子书籍网址：[亚马逊](https://www.amazon.com/dp/B0H3M3B8GG)
 
 **Issues**：[https://github.com/zcqiand/text-adventure-rpg/issues](https://github.com/zcqiand/text-adventure-rpg/issues)
