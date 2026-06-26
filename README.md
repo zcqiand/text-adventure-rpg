@@ -1,4 +1,4 @@
-# text-adventure-rpg
+# 文字冒险 RPG 游戏
 
 > 单进程、零外部依赖的命令行文字冒险 RPG——两本 Claude Code 实战书的可部署配套案例。
 
