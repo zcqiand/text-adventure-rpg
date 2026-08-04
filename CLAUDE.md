@@ -1,32 +1,53 @@
-# text-adventure-rpg — Claude Code 项目级上下文
+# text-adventure-rpg — 仓库工作约定（供 Claude Code）
 
-> 本文件是《Harness 工程：围绕 Claude Code 构建可靠系统》第 4 章「CLAUDE.md 怎么写」的实物示例。
+本仓为《Harness 工程》与《Claude Code 从入门到项目实践》案例仓（文字冒险 RPG）的可运行配套工程，是书稿代码块的 **source of truth**。
 
 ## 项目定位
 
-文字冒险 RPG 游戏，单进程命令行运行，无外部依赖。用于演示 Claude Code 在中等复杂度项目中的控制平面、多文件协作、上下文治理、错误恢复、持久化等能力。
+单进程、零外部依赖的命令行文字冒险 RPG，用于演示控制平面、多文件协作、上下文治理、错误恢复、持久化等能力。
 
-## 技术栈
+## 铁律
+
+- **TDD**：每个模块先写失败测试 → 跑确认失败 → 实现 → 跑确认绿 → commit。
+- **版本钉死**：依赖与 `version-lock.json` 的 `version_lock` 一致；不引入 lock 外的库。
+- **tag 即放行**：全量回归绿后打 `v<MAJOR>.<MINOR>-<NNN>`（NNN=项目号）。
+- **只增不改**：扩充时不动现有模块签名/行为；新模块独立测试，CI 双跑。
+- **mock-friendly**：`pip install -e . && pytest -q` 必须在无 Key、无 Docker、无网下全绿。
+
+## 技术栈与版本（钉死于 version-lock.json）
 
 - Python 3.10+
-- 标准库优先，外部依赖仅 `pytest`（测试）
-- 状态以 JSON 持久化到 `~/.text-adventure-rpg/saves/`
+- 标准库优先
+- pytest
+
+## 验收
+
+```bash
+pip install -e .    # 离线可用（首次需联网，之后 node_modules 已就绪）
+pytest -q           # 必须全绿，无需 Key/Docker/网络
+```
 
 ## 目录结构
 
 ```text
 text-adventure-rpg/
 ├── pyproject.toml
-├── CLAUDE.md                      ← 本文件
-├── .claude/settings.json          ← 权限与 Hooks 配置（第 5 章）
+├── CLAUDE.md
+├── .claude/settings.json
 ├── src/text_adventure_rpg/
-│   ├── __main__.py                 ← 主循环入口（第 6 章 Agent Loop）
-│   ├── engine.py                   ← 控制平面四环节（第 3 章）
+│   ├── __main__.py                 ← 主循环入口（text-rpg）
+│   ├── game.py                     ← 战斗集成版入口（text-full-rpg）
+│   ├── engine.py                   ← 控制平面四环节
 │   ├── scenes.py                   ← 场景加载
 │   ├── items.py                    ← 物品系统
 │   ├── npcs.py                     ← NPC 行为
-│   ├── persistence.py              ← 存档读档（第 10 章）
-│   └── data/                       ← 场景/物品/NPC 定义 JSON（随包分发）
+│   ├── character.py                ← 角色系统
+│   ├── combat.py                   ← 回合制战斗
+│   ├── formulas.py                 ← 数值公式
+│   ├── narrative.py                ← 动态叙事
+│   ├── persistence.py              ← 存档读档
+│   ├── validators.py               ← 启动自检
+│   └── data/                       ← 场景/物品/NPC 定义 JSON
 │       ├── scenes/
 │       ├── items/
 │       └── npcs/
@@ -35,35 +56,7 @@ text-adventure-rpg/
 
 ## 编码约定
 
-- **零伪代码**：禁止 `...` 占位、`pass` 占位、`TODO` 占位。每段代码必须可运行。
 - **数据驱动**：场景/物品/NPC 必须从 `data/` 加载，禁止硬编码到 Python 文件。
+- **存档原子性**：写入存档时先写临时文件再 `os.replace`，禁止直接覆盖。
 - **错误处理**：所有文件 I/O 必须捕获 `FileNotFoundError` 和 `json.JSONDecodeError`，并给出可读错误信息。
-- **存档原子性**：写入存档时先写临时文件再重命名，禁止直接覆盖。
-
-## 危险操作
-
-以下操作需要用户二次确认（已在 `.claude/settings.json` 的 Hooks 中配置）：
-
-- 删除 `~/.text-adventure-rpg/saves/` 下任何存档
-- 修改 `data/` 下任何 JSON 文件
-- 修改 `engine.py` 的核心战斗循环逻辑
-
-## 测试要求
-
-任何新增功能必须同步加 pytest 测试。提交前必须通过：
-
-```bash
-pytest -v
-```
-
-## 与本书的关系
-
-| 章节 | 本仓库对应 |
-| ---- | ---------- |
-| 第 3 章 控制平面 | `engine.py` 的 perceive → plan → act → verify 四步骤 |
-| 第 4 章 上下文治理 | 本文件即是示例 |
-| 第 5 章 权限/Hooks | `.claude/settings.json` |
-| 第 6 章 Agent Loop | `__main__.py` 主循环 |
-| 第 8 章 多文件协作 | `scenes.py` + `items.py` + `npcs.py` 三文件同步修改 |
-| 第 9 章 错误恢复 | `engine.py` 的回滚/重试/降级分支 |
-| 第 10 章 持久化 | `persistence.py` |
+- **零伪代码**：禁止 `pass` 占位、`TODO` 占位、`...` 占位，每段代码必须可运行。
