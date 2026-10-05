@@ -32,6 +32,9 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0",
+    # starlette TestClient 依赖 httpx（CI 干净环境现形：本地有残留安装没暴露，
+    # run 37384538850 红「requires the httpx package」）。
+    "httpx>=0.27",
 ]
 
 [project.scripts]
