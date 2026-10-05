@@ -1,0 +1,51 @@
+# text-adventure-rpg — VPS nginx vhost 模板（agent 家族一域双 upstream 形态）
+# 部署时由 deploy/text-adventure-rpg.sh 渲染到 /etc/nginx/sites-available/<domain>：
+#   <domain>                          → text-adventure.xiangru.uk（可用 NGINX_DOMAIN 覆盖）
+#   /etc/nginx/ssl/<domain>.crt|.key  → /etc/nginx/ssl/xiangru-uk.{cert,key}（泛域证书）
+# 本容器不终结 TLS——那是 VPS nginx 的职责；api 容器只监听 127.0.0.1:5405。
+#
+# 渲染纪律（2026-09-03 事故）：cert 归一化 sed 规则必须排在 <domain> 之前。
+
+# ---- HTTP → HTTPS ----
+server {
+    listen 80;
+    server_name <domain>;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name <domain>;
+
+    ssl_certificate     /etc/nginx/ssl/<domain>.crt;
+    ssl_certificate_key /etc/nginx/ssl/<domain>.key;
+
+    # HSTS（家族统一姿态）
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
+    # ---- /api/ → api 容器（uvicorn，host 127.0.0.1:5405）----
+    # 纯 REST 无 SSE，仍保留长读超时（live 叙事 LLM 出字慢，默认 60s 会掐断）
+    location /api/ {
+        proxy_pass http://127.0.0.1:5405;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Connection "";
+        proxy_buffering off;
+        proxy_read_timeout 300s;
+        proxy_send_timeout 300s;
+    }
+
+    # ---- / → web 静态容器（nginx，host 127.0.0.1:5305）----
+    location / {
+        proxy_pass http://127.0.0.1:5305;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
