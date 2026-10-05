@@ -1,13 +1,13 @@
 # 文字冒险 RPG 游戏
 
-单进程、零外部依赖的命令行文字冒险 RPG，配套《Harness 工程》和《Claude Code 从入门到项目实践》。
+单进程、零外部依赖的命令行文字冒险 RPG，配套《Harness 工程：围绕 Claude Code 构建可靠系统》卷一·卷二。
 
 ## 快速开始
 
 ```bash
 pip install -e .          # 安装依赖（Python 3.10+）
-text-rpg                  # 书一核心探索版
-text-full-rpg             # 书二战斗集成版
+text-rpg                  # 核心探索版（书一案例）
+text-full-rpg             # 战斗集成版（历史入口，原书二卷三案例；该书已换绑弃用此仓，入口保留）
 pytest -q                 # 全量测试
 ```
 
@@ -35,29 +35,18 @@ pytest -q                 # 全量测试
 
 ### 书一《Harness 工程：围绕 Claude Code 构建可靠系统》（卷一·卷二）
 
-| 章 | 主题 | 对应源文件 |
-| :--- | :--- | :--- |
-| 1 | 案例介绍 | 仓库整体结构 |
-| 3 | 控制平面四环节 | `src/text_adventure_rpg/engine.py` |
-| 4 | 项目级上下文 | `CLAUDE.md` |
-| 5 | 权限/沙箱/Hooks | `.claude/settings.json` |
-| 6 | Agent Loop | `src/text_adventure_rpg/__main__.py` |
-| 7 | 任务分解 | `src/text_adventure_rpg/engine.py` |
-| 8 | 多文件协作 | `src/text_adventure_rpg/{scenes,items,npcs}.py` |
-| 9 | 错误恢复 | `src/text_adventure_rpg/engine.py` |
-| 10 | 持久化 | `src/text_adventure_rpg/persistence.py` |
-
-### 书二《Claude Code 从入门到项目实践》（卷三）
+配套版本：`v2.0.0-20260625`（本书第 1—10 章引用源文件以此 tag 为准；`v2.0.1-20261005` 恢复第 5 章实物 `.claude/settings.json` 并补充测试，引用文件内容不变）
 
 | 章 | 主题 | 对应源文件 |
 | :--- | :--- | :--- |
-| 27 | 项目立项与架构设计 | `src/text_adventure_rpg/__main__.py` |
-| 28 | 场景图与状态机引擎 | `src/text_adventure_rpg/scenes.py` |
-| 29 | NPC、物品与对话系统 | `src/text_adventure_rpg/{npcs,items}.py` |
-| 30 | 战斗系统与数值平衡 | `src/text_adventure_rpg/{combat,character,formulas}.py` |
-| 31 | 动态叙事与 LLM 集成 | `src/text_adventure_rpg/narrative.py` |
-| 32 | 存档、UI 与测试 | `src/text_adventure_rpg/{persistence,validators}.py` |
-| 33 | 调试、迭代与发布 | 整体调试流程与发布脚本 |
+| 1 Harness 的由来 | 案例导引 | 仓库整体结构 |
+| 4 上下文治理 | 项目级上下文 | `CLAUDE.md` |
+| 5 权限与沙箱 | 权限/沙箱/Hooks 实物示例 | `.claude/settings.json` |
+| 6 思考行动检查 | Agent Loop 主循环 | `src/text_adventure_rpg/__main__.py` |
+| 7 复杂问题分解 | 任务分解 | `src/text_adventure_rpg/engine.py` |
+| 8 多文件修改 | 多文件协作 | `src/text_adventure_rpg/{scenes,items,npcs}.py` |
+| 9 AI 错误修正 | 错误恢复 | `src/text_adventure_rpg/engine.py` |
+| 10 跨会话恢复 | 持久化 | `src/text_adventure_rpg/persistence.py` |
 
 ## 快速链接
 
