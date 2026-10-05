@@ -14,8 +14,9 @@ server {
 }
 
 server {
-    listen 443 ssl;
-    http2 on;
+    # 家族模板语法：http2 走 listen 参数（VPS nginx < 1.25.1 不认独立
+    # `http2 on;` 指令——2026-10-06 expense run 37385091752 首航指纹）
+    listen 443 ssl http2;
     server_name <domain>;
 
     ssl_certificate     /etc/nginx/ssl/<domain>.crt;
