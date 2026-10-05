@@ -24,6 +24,13 @@ pip install -e .    # 离线可用
 pytest -q           # 必须全绿，无需 Key/Docker/网络
 ```
 
+Web/API 层（战斗版）：
+
+```bash
+LLM_MODE=mock text-rpg-web        # 服务起 8805，/api/health 返回 {"ok":true,"mode":"mock"}
+cd frontend && npm run build      # 前端 tsc strict + vite 构建门（npm 走 npmmirror）
+```
+
 ## 编码约定
 
 - **数据驱动**：场景/物品/NPC 必须从 `data/` 加载，禁止硬编码到 Python 文件。

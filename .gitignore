@@ -25,6 +25,9 @@ venv/
 dist/
 build/
 
+# Frontend
+node_modules/
+
 # Local game state
 saves/
 *.save.json

@@ -22,8 +22,12 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Topic :: Games/Entertainment :: Role-Playing",
 ]
-# 无运行时第三方依赖：游戏只用标准库，便于读者复现
-dependencies = []
+# 游戏本体只用标准库；Web 层（api/ + game_service + webserver）用 FastAPI。
+# CLI 三入口（text-rpg / text-full-rpg）仍然零第三方依赖可跑。
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn>=0.30",
+]
 
 [project.optional-dependencies]
 dev = [
@@ -31,11 +35,13 @@ dev = [
 ]
 
 [project.scripts]
-# 两个并行入口，分属不同章节案例：
+# 三个并行入口，分属不同章节案例：
 # - `text-rpg`：005「Agent Loop」版（__main__.py，perceive→plan→act→verify 主循环）。
 # - `text-full-rpg`：002 卷三战斗集成版（game.py，character + combat + formulas + narrative 集成）。
+# - `text-rpg-web`：Web 版（webserver.py，FastAPI + React 前端的后端）。
 text-rpg = "text_adventure_rpg.__main__:main"
 text-full-rpg = "text_adventure_rpg.game:main"
+text-rpg-web = "text_adventure_rpg.webserver:main"
 
 [project.urls]
 Homepage = "https://github.com/zcqiand/text-adventure-rpg"
