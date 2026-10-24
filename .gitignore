@@ -34,3 +34,10 @@ saves/
 
 # Local
 *.log
+# 正式区/临时区（2026-10-24 人定，全产品线通用）——可再生件不入库
+out/
+bin/
+obj/
+**/_work/render/
+hook-audit/
+hook-audit*.log
